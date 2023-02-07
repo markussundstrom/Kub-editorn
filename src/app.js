@@ -1,28 +1,41 @@
 import * as THREE from 'three';
+import { EXRLoader } from '../node_modules/three/examples/jsm/loaders/EXRLoader.js';
+import { PMREMGenerator } from '../node_modules/three/src/extras/PMREMGenerator.js';
 import { OrbitControls } from 'orbitControls';
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth /
                                            window.innerHeight, 0.1, 1000)
 const renderer = new THREE.WebGLRenderer();
+const pmremGenerator = new PMREMGenerator(renderer);
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 const geometry = new THREE.BoxGeometry(1, 1, 1);
-const material = new THREE.MeshBasicMaterial({color: 0x00ff00});
-const material2 = new THREE.MeshStandardMaterial({color: 0x302020});
+
 const stoneTex = new THREE.Texture(genNoiseBumpMap());
 stoneTex.needsUpdate = true;
 const stoneMat = new THREE.MeshStandardMaterial({color: 0x302020, bumpMap: stoneTex, bumpScale: 0.1});
+
+let exrTex = new EXRLoader().load('clarens_midday_1k.exr')
+exrTex.needsUpdate = true;
+let metEnvMap = pmremGenerator.fromEquirectangular(exrTex);
+metEnvMap.needsUpdate = true;
+const metalMat = new THREE.MeshStandardMaterial({color: 0xFFFFFF, metalness: 1,
+                                                 envMap: metEnvMap, envMapIntensity: 1,
+                                                 roughness: 0.4});
+
+const ambLight = new THREE.AmbientLight(0x808080);
 const spotlightl = new THREE.SpotLight(0xffffff);
-spotlightl.position.set(-60, 20, 10);
+spotlightl.position.set(-60, 10, 10);
 spotlightl.castShadow = true;
 const spotlightr = new THREE.SpotLight(0xffffff);
-spotlightr.position.set(60, 20, 10);
+spotlightr.position.set(60, 10, -10);
 spotlightr.castShadow = true;
 
-const cube = new THREE.Mesh(geometry, stoneMat);
+const cube = new THREE.Mesh(geometry, metalMat);
 scene.add(cube);
 scene.add(spotlightl);
 scene.add(spotlightr);
+scene.add(ambLight);
 camera.position.z = 5;
 
 function animate() {
@@ -45,9 +58,5 @@ function genNoiseBumpMap() {
     }
     return canvas;
 }
-
-
-
-
 animate();
 
