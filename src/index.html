@@ -7,8 +7,20 @@
 		<style>
 			body { margin: 0; }
 		</style>
+        <link rel="stylesheet" href="styles.css">
 	</head>
 	<body>
+        <div id="control">
+            <div id="mat">
+                <h4>Material</h4>
+                <form id="matform">
+                    <input type="radio" id="metal" name="material" value="metal" checked>
+                    <label for="metal">Metal-ish</label><br>
+                    <input type="radio" id="stone" name="material" value="stone">
+                    <label for="stone">Stone-ish</label><br>
+                </form>
+            </div>
+        </div>
 		<script type="importmap">
 			{
 				"imports": {

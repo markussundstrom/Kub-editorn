@@ -2,6 +2,14 @@ import * as THREE from 'three';
 import { EXRLoader } from '../node_modules/three/examples/jsm/loaders/EXRLoader.js';
 import { PMREMGenerator } from '../node_modules/three/src/extras/PMREMGenerator.js';
 import { OrbitControls } from 'orbitControls';
+
+let matRadios = document.querySelectorAll('input[name="material"]');
+for (let i = 0; i < matRadios.length; i++) {
+    matRadios[i].addEventListener(
+        "change", function() {switchMaterial(this.value)}
+    );
+}
+
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth /
                                            window.innerHeight, 0.1, 1000)
@@ -9,19 +17,20 @@ const renderer = new THREE.WebGLRenderer();
 const pmremGenerator = new PMREMGenerator(renderer);
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
+pmremGenerator.compileEquirectangularShader();
+
 const geometry = new THREE.BoxGeometry(1, 1, 1);
 
 const stoneTex = new THREE.Texture(genNoiseBumpMap());
 stoneTex.needsUpdate = true;
 const stoneMat = new THREE.MeshStandardMaterial({color: 0x302020, bumpMap: stoneTex, bumpScale: 0.1});
 
-let exrTex = new EXRLoader().load('clarens_midday_1k.exr')
-exrTex.needsUpdate = true;
-let metEnvMap = pmremGenerator.fromEquirectangular(exrTex);
+let exrTex = await new EXRLoader().loadAsync('clarens_midday_1k.exr')
+let metEnvMap = pmremGenerator.fromEquirectangular(exrTex).texture
 metEnvMap.needsUpdate = true;
 const metalMat = new THREE.MeshStandardMaterial({color: 0xFFFFFF, metalness: 1,
-                                                 envMap: metEnvMap, envMapIntensity: 1,
-                                                 roughness: 0.4});
+                                                 envMap: metEnvMap, envMapIntensity: 0.8,
+                                                 roughness: 0.1});
 
 const ambLight = new THREE.AmbientLight(0x808080);
 const spotlightl = new THREE.SpotLight(0xffffff);
@@ -43,6 +52,19 @@ function animate() {
     cube.rotation.x += 0.01;
     cube.rotation.y += 0.01;
     renderer.render(scene, camera);
+}
+
+function switchMaterial(value) {
+    switch (value) {
+        case "metal":
+            cube.material = metalMat;
+            break;
+        case "stone":
+            cube.material = stoneMat;
+            break;
+        default:
+            break;
+    }
 }
 
 function genNoiseBumpMap() {
