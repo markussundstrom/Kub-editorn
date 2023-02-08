@@ -47,12 +47,26 @@ table {
 #control {
     position: fixed;
     display: grid;
+    grid-template-columns: 1fr, 1fr, 1fr, 1fr;
     bottom: 0;
-    width: 100%;
-    margin: 0 80px;
+    left: 20%;
+    width: 60%;
+    margin: auto;
     height: 160px;
     padding: 20px 40px;
     border-radius: 40px;
     border: 8px outset rgba(180,180,180,1);
     background-image: linear-gradient(to right, rgba(100,100,100,1), rgba(160,160,160,1), rgba(100,100,100,1));
+}
+
+#mat {
+    display: flex;
+    flex-flow: column;
+    grid-column: 1 / 2;
+}
+
+#size {
+    display: flex;
+    flex-flow: column;
+    grid-column: 2 / 3;
 }

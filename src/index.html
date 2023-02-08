@@ -14,10 +14,23 @@
             <div id="mat">
                 <h4>Material</h4>
                 <form id="matform">
-                    <input type="radio" id="metal" name="material" value="metal" checked>
+                    <input type="radio" id="metal" name="material" value="metal">
                     <label for="metal">Metal-ish</label><br>
-                    <input type="radio" id="stone" name="material" value="stone">
+                    <input type="radio" id="stone" name="material" value="stone" checked>
                     <label for="stone">Stone-ish</label><br>
+                    <input type="radio" id="radioactive" name="material" value="radioactive" >
+                    <label for="stone">Radioactive-ish</label><br>
+                </form>
+            </div>
+            <div id="size">
+                <h4>Size</h4>
+                <form id="sizform">
+                    <input type="range" id="sizex" max="2" min="0.5" step="0.5" value="1" name="size">
+                    <label for="sizex">X</label><br>
+                    <input type="range" id="sizey" max="2" min="0.5" step="0.5" value="1" name="size">
+                    <label for="sizex">Y</label><br>
+                    <input type="range" id="sizez" max="2" min="0.5" step="0.5" value="1" name="size">
+                    <label for="sizex">Z</label><br>
                 </form>
             </div>
         </div>

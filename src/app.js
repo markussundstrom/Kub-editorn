@@ -10,6 +10,15 @@ for (let i = 0; i < matRadios.length; i++) {
     );
 }
 
+let sizeRanges = document.querySelectorAll('input[name="size"]');
+console.log("Size: ", sizeRanges.length);
+for (let j = 0; j < sizeRanges.length; j++) {
+    console.log("event", j);
+    sizeRanges[j].addEventListener(
+        "change", function() {resizeCube(this.id, this.value)}
+    );
+}
+
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth /
                                            window.innerHeight, 0.1, 1000)
@@ -20,6 +29,7 @@ document.body.appendChild(renderer.domElement);
 pmremGenerator.compileEquirectangularShader();
 
 const geometry = new THREE.BoxGeometry(1, 1, 1);
+const planegeo = new THREE.PlaneGeometry(8, 8);
 
 const stoneTex = new THREE.Texture(genNoiseBumpMap());
 stoneTex.needsUpdate = true;
@@ -28,22 +38,38 @@ const stoneMat = new THREE.MeshStandardMaterial({color: 0x302020, bumpMap: stone
 let exrTex = await new EXRLoader().loadAsync('clarens_midday_1k.exr')
 let metEnvMap = pmremGenerator.fromEquirectangular(exrTex).texture
 metEnvMap.needsUpdate = true;
-const metalMat = new THREE.MeshStandardMaterial({color: 0xFFFFFF, metalness: 1,
+const metalMat = new THREE.MeshStandardMaterial({color: 0xF0F0F0, metalness: 1,
                                                  envMap: metEnvMap, envMapIntensity: 0.8,
                                                  roughness: 0.1});
 
-const ambLight = new THREE.AmbientLight(0x808080);
-const spotlightl = new THREE.SpotLight(0xffffff);
+const radMat = new THREE.MeshStandardMaterial({color: 0x40B000, emissive: 0x00FF00})
+const floorMat = new THREE.MeshStandardMaterial({color: 0xE0E0E0, roughness: 0.5});
+floorMat.needsUpdate = true;
+
+const ambLight = new THREE.AmbientLight(0x101010);
+const pointLight = new THREE.PointLight(0xA0A0A0);
+pointLight.position.set(-40, 200, 10);
+/*const spotlightl = new THREE.SpotLight(0xffffff);
 spotlightl.position.set(-60, 10, 10);
 spotlightl.castShadow = true;
 const spotlightr = new THREE.SpotLight(0xffffff);
 spotlightr.position.set(60, 10, -10);
 spotlightr.castShadow = true;
-
-const cube = new THREE.Mesh(geometry, metalMat);
+*/
+const spotLight = new THREE.SpotLight(0xFFFFFF);
+spotLight.position.set(100, 100, 100);
+spotLight.castShadow = true;
+const cube = new THREE.Mesh(geometry, stoneMat);
+const floor = new THREE.Mesh(planegeo, floorMat);
+floor.receiveShadows = true;
+floor.rotation.x = -1;
+floor.position.y = -1;
 scene.add(cube);
-scene.add(spotlightl);
-scene.add(spotlightr);
+scene.add(floor);
+scene.add(spotLight);
+scene.add(pointLight);
+//scene.add(spotlightl);
+//scene.add(spotlightr);
 scene.add(ambLight);
 camera.position.z = 5;
 
@@ -62,9 +88,33 @@ function switchMaterial(value) {
         case "stone":
             cube.material = stoneMat;
             break;
+        case "radioactive":
+            cube.material = radMat;
+            break;
         default:
             break;
     }
+    cube.needsUpdate = true;
+}
+
+function resizeCube(axis, value) {
+    let newScale = cube.scale
+    switch (axis) {
+        case "sizex":
+            newScale.x = value;
+            break;
+        case "sizey":
+            newScale.y = value;
+            break;
+        case "sizez":
+            newScale.z = value;
+            break;
+        default:
+            break;
+    }
+    cube.scale = newScale;
+    console.log(cube.scale);
+    cube.needsUpdate = true;
 }
 
 function genNoiseBumpMap() {
