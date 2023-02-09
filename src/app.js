@@ -3,7 +3,7 @@ import { EXRLoader } from '../node_modules/three/examples/jsm/loaders/EXRLoader.
 import { PMREMGenerator } from '../node_modules/three/src/extras/PMREMGenerator.js';
 import { OrbitControls } from 'orbitControls';
 //FIXME
-//import  { createNoise2D }  from 'simplex-noise';
+import { createNoise2D } from 'simplex-noise';
 
 let matRadios = document.querySelectorAll('input[name="material"]');
 for (let i = 0; i < matRadios.length; i++) {
@@ -52,6 +52,7 @@ const terrainBumpMap = genTerrainBumpMap(terrainMap);
 const earthMap = new THREE.Texture(terrainMap);
 earthMap.needsUpdate = true;
 const earthBumpMap = new THREE.Texture(terrainBumpMap);
+earthBumpMap.needsUpdate = true;
 const earthMat = new THREE.MeshStandardMaterial({map: earthMap, bumpMap: earthBumpMap});
 earthMat.needsUpdate = true;
 
@@ -65,16 +66,10 @@ floorMat.needsUpdate = true;
 const ambLight = new THREE.AmbientLight(0x101010);
 const pointLight = new THREE.PointLight(0xA0A0A0);
 pointLight.position.set(-40, 200, 10);
-/*const spotlightl = new THREE.SpotLight(0xffffff);
-spotlightl.position.set(-60, 10, 10);
-spotlightl.castShadow = true;
-const spotlightr = new THREE.SpotLight(0xffffff);
-spotlightr.position.set(60, 10, -10);
-spotlightr.castShadow = true;
-*/
 const spotLight = new THREE.SpotLight(0xFFFFFF);
 spotLight.position.set(100, 100, 100);
 spotLight.castShadow = true;
+
 const cube = new THREE.Mesh(geometry, stoneMat);
 const floor = new THREE.Mesh(planegeo, floorMat);
 floor.receiveShadows = true;
@@ -84,8 +79,6 @@ scene.add(cube);
 scene.add(floor);
 scene.add(spotLight);
 scene.add(pointLight);
-//scene.add(spotlightl);
-//scene.add(spotlightr);
 scene.add(ambLight);
 camera.position.z = 5;
 
@@ -132,7 +125,6 @@ function resizeCube(axis, value) {
             break;
     }
     cube.scale = newScale;
-    console.log(cube.scale);
     cube.needsUpdate = true;
 }
 
@@ -143,7 +135,7 @@ function genNoiseBumpMap() {
     for (let x = 0; x < canvas.width; x++) {
         for (let y = 0; y < canvas.height; y++) {
             let value = Math.floor((Math.random() * 128) + 64);
-            ctx.fillStyle = "rgba(" + value + "," + value + "," + value + ",1)";
+            ctx.fillStyle = "rgb(" + value + "," + value + "," + value + ")";
             ctx.fillRect(x, y, 1, 1);
         }
     }
@@ -152,19 +144,19 @@ function genNoiseBumpMap() {
 
 function genSimplexMap() {
     let canvas = document.createElement("canvas");
-    canvas.width = canvas.height = 200;
+    canvas.width = canvas.height = 40;
     const ctx = canvas.getContext('2d');
     //FIXME
-    //const noise2d = createNoise2d();
+    const noise2d = createNoise2D();
     for (let x = 0; x < canvas.width; x++) {
         for (let y = 0; y < canvas.height; y++) {
             //FIXME
-            //let value = (noise2d(x, y) + 1) * 127;
-            let value = Math.floor(Math.Random * 255);
-            if (value < 127) {
-                ctx.fillStyle = "rgba(0,0,127,1)";
+            let value = Math.floor((noise2d(x, y) + 1) * 127);
+            //let value = Math.floor(Math.random() * 255);
+            if (value < 150) {
+                ctx.fillStyle = "rgb(0,0,127)";
             } else {
-                ctx.fillStyle = "rgba(0.2" + value * 0.5 + ",0,1)";
+                ctx.fillStyle = "rgb(40," + value + ",0)";
             }
             ctx.fillRect(x, y, 1, 1);
         }
@@ -174,17 +166,17 @@ function genSimplexMap() {
 
 function genTerrainBumpMap(simplexCanvas) {
     let canvas = document.createElement("canvas");
-    canvas.width = canvas.height = 200;
+    canvas.width = canvas.height = 40;
     const ctx = canvas.getContext('2d');
     const simplex = simplexCanvas.getContext('2d');
     for (let x = 0; x < canvas.width; x++) {
         for (let y = 0; y < canvas.height; y++) {
             let sourcePx = simplex.getImageData(x, y, 1, 1)
-            if (sourcePx[2] > 0) {
-                ctx.fillStyle = "rgba(0,0,0,1)";
+            if (sourcePx.data[2] > 0) {
+                ctx.fillStyle = "rgb(0,0,0)";
             } else {
-                let value = (sourcePx[1] * 4) - 255;
-                ctx.fillstyle = "rgba(" + value + "," + value + "," + value + ",1)";
+                let value = sourcePx.data[1];
+                ctx.fillstyle = "rgb(" + value + "," + value + "," + value + ")";
             }
             ctx.fillRect(x, y, 1, 1);
         }
