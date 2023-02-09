@@ -14,12 +14,14 @@
             <div id="mat">
                 <h4>Material</h4>
                 <form id="matform">
-                    <input type="radio" id="metal" name="material" value="metal">
-                    <label for="metal">Metal-ish</label><br>
                     <input type="radio" id="stone" name="material" value="stone" checked>
                     <label for="stone">Stone-ish</label><br>
+                    <input type="radio" id="metal" name="material" value="metal">
+                    <label for="metal">Metal-ish</label><br>
                     <input type="radio" id="radioactive" name="material" value="radioactive" >
                     <label for="stone">Radioactive-ish</label><br>
+                    <input type="radio" id="earth" name="material" value="earth">
+                    <label for="earth">Earth-ish</label>
                 </form>
             </div>
             <div id="size">
@@ -38,7 +40,8 @@
 			{
 				"imports": {
 					"three": "../node_modules/three/build/three.module.js",
-					"orbitControls" : "../node_modules/three/examples/jsm/controls/OrbitControls.js"
+					"orbitControls" : "../node_modules/three/examples/jsm/controls/OrbitControls.js",
+                    "simplex-noise" : "../node_modules/simplex-noise/dist/cjs/simplex-noise.js"
 				}
 			}
 		</script>

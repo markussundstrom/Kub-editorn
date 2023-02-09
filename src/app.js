@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { EXRLoader } from '../node_modules/three/examples/jsm/loaders/EXRLoader.js';
 import { PMREMGenerator } from '../node_modules/three/src/extras/PMREMGenerator.js';
 import { OrbitControls } from 'orbitControls';
+//FIXME
+//import  { createNoise2D }  from 'simplex-noise';
 
 let matRadios = document.querySelectorAll('input[name="material"]');
 for (let i = 0; i < matRadios.length; i++) {
@@ -43,8 +45,22 @@ const metalMat = new THREE.MeshStandardMaterial({color: 0xF0F0F0, metalness: 1,
                                                  roughness: 0.1});
 
 const radMat = new THREE.MeshStandardMaterial({color: 0x40B000, emissive: 0x00FF00})
+radMat.needsUpdate = true;
+
+const terrainMap = genSimplexMap();
+const terrainBumpMap = genTerrainBumpMap(terrainMap);
+const earthMap = new THREE.Texture(terrainMap);
+earthMap.needsUpdate = true;
+const earthBumpMap = new THREE.Texture(terrainBumpMap);
+const earthMat = new THREE.MeshStandardMaterial({map: earthMap, bumpMap: earthBumpMap});
+earthMat.needsUpdate = true;
+
 const floorMat = new THREE.MeshStandardMaterial({color: 0xE0E0E0, roughness: 0.5});
 floorMat.needsUpdate = true;
+
+
+
+
 
 const ambLight = new THREE.AmbientLight(0x101010);
 const pointLight = new THREE.PointLight(0xA0A0A0);
@@ -91,6 +107,9 @@ function switchMaterial(value) {
         case "radioactive":
             cube.material = radMat;
             break;
+        case "earth":
+            cube.material = earthMat;
+            break;
         default:
             break;
     }
@@ -130,5 +149,48 @@ function genNoiseBumpMap() {
     }
     return canvas;
 }
+
+function genSimplexMap() {
+    let canvas = document.createElement("canvas");
+    canvas.width = canvas.height = 200;
+    const ctx = canvas.getContext('2d');
+    //FIXME
+    //const noise2d = createNoise2d();
+    for (let x = 0; x < canvas.width; x++) {
+        for (let y = 0; y < canvas.height; y++) {
+            //FIXME
+            //let value = (noise2d(x, y) + 1) * 127;
+            let value = Math.floor(Math.Random * 255);
+            if (value < 127) {
+                ctx.fillStyle = "rgba(0,0,127,1)";
+            } else {
+                ctx.fillStyle = "rgba(0.2" + value * 0.5 + ",0,1)";
+            }
+            ctx.fillRect(x, y, 1, 1);
+        }
+    }
+    return canvas;
+}
+
+function genTerrainBumpMap(simplexCanvas) {
+    let canvas = document.createElement("canvas");
+    canvas.width = canvas.height = 200;
+    const ctx = canvas.getContext('2d');
+    const simplex = simplexCanvas.getContext('2d');
+    for (let x = 0; x < canvas.width; x++) {
+        for (let y = 0; y < canvas.height; y++) {
+            let sourcePx = simplex.getImageData(x, y, 1, 1)
+            if (sourcePx[2] > 0) {
+                ctx.fillStyle = "rgba(0,0,0,1)";
+            } else {
+                let value = (sourcePx[1] * 4) - 255;
+                ctx.fillstyle = "rgba(" + value + "," + value + "," + value + ",1)";
+            }
+            ctx.fillRect(x, y, 1, 1);
+        }
+    }
+    return canvas;
+}
+
 animate();
 
