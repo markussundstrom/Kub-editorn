@@ -21,6 +21,8 @@ for (let j = 0; j < sizeRanges.length; j++) {
     );
 }
 
+document.getElementById('resetBtn').addEventListener("click", resetScene);
+
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth /
                                            window.innerHeight, 0.1, 1000)
@@ -89,6 +91,26 @@ function animate() {
     renderer.render(scene, camera);
 }
 
+function resetScene() {
+    cube.material = stoneMat;
+    cube.scale.x = cube.scale.y = cube.scale.z = 1;
+
+    let matRadios = document.querySelectorAll('input[name="material"]');
+    for (let i = 0; i < matRadios.length; i++) {
+        if (matRadios[i].id == "stone") {
+            matRadios[i].checked = true;
+        } else {
+            matRadios[i].checked = false;
+        }
+    }
+    let sizeRanges = document.querySelectorAll('input[name="size"]');
+    for (let j = 0; j < sizeRanges.length; j++) {
+        sizeRanges[j].value="1";
+    }
+}
+
+
+
 function switchMaterial(value) {
     switch (value) {
         case "metal":
@@ -110,21 +132,19 @@ function switchMaterial(value) {
 }
 
 function resizeCube(axis, value) {
-    let newScale = cube.scale
     switch (axis) {
         case "sizex":
-            newScale.x = value;
+            cube.scale.x = value;
             break;
         case "sizey":
-            newScale.y = value;
+            cube.scale.y = value;
             break;
         case "sizez":
-            newScale.z = value;
+            cube.scale.z = value;
             break;
         default:
             break;
     }
-    cube.scale = newScale;
     cube.needsUpdate = true;
 }
 
