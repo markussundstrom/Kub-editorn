@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { EXRLoader } from '../node_modules/three/examples/jsm/loaders/EXRLoader.js';
 import { PMREMGenerator } from '../node_modules/three/src/extras/PMREMGenerator.js';
 import { OrbitControls } from 'orbitControls';
-//FIXME
 import { createNoise2D } from 'simplex-noise';
 
 let matRadios = document.querySelectorAll('input[name="material"]');
@@ -29,6 +28,7 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth /
 const renderer = new THREE.WebGLRenderer();
 const pmremGenerator = new PMREMGenerator(renderer);
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
 pmremGenerator.compileEquirectangularShader();
 
@@ -49,37 +49,40 @@ const metalMat = new THREE.MeshStandardMaterial({color: 0xF0F0F0, metalness: 1,
 const radMat = new THREE.MeshStandardMaterial({color: 0x40B000, emissive: 0x00FF00})
 radMat.needsUpdate = true;
 
+//Not working as envisioned, needs tweaking or scrapping
 const terrainMap = genSimplexMap();
 const terrainBumpMap = genTerrainBumpMap(terrainMap);
 const earthMap = new THREE.Texture(terrainMap);
 earthMap.needsUpdate = true;
 const earthBumpMap = new THREE.Texture(terrainBumpMap);
 earthBumpMap.needsUpdate = true;
-const earthMat = new THREE.MeshStandardMaterial({map: earthMap, bumpMap: earthBumpMap});
+const earthMat = new THREE.MeshStandardMaterial({map: earthMap, bumpMap: earthBumpMap, bumpScale: 1});
 earthMat.needsUpdate = true;
 
-const floorMat = new THREE.MeshStandardMaterial({color: 0xE0E0E0, roughness: 0.5});
+const floorMat = new THREE.MeshStandardMaterial({color: 0xE0E0E0, roughness: 0.3});
 floorMat.needsUpdate = true;
 
-
-
-
-
-const ambLight = new THREE.AmbientLight(0x101010);
-const pointLight = new THREE.PointLight(0xA0A0A0);
-pointLight.position.set(-40, 200, 10);
-const spotLight = new THREE.SpotLight(0xFFFFFF);
-spotLight.position.set(100, 100, 100);
-spotLight.castShadow = true;
-
 const cube = new THREE.Mesh(geometry, stoneMat);
+cube.castShadows = true;
 const floor = new THREE.Mesh(planegeo, floorMat);
 floor.receiveShadows = true;
 floor.rotation.x = -1;
 floor.position.y = -1;
+
+const ambLight = new THREE.AmbientLight(0x101010);
+const pointLight = new THREE.PointLight(0x808080);
+pointLight.position.set(0, 100, -10);
+pointLight.castShadow = true;
+const spotLight = new THREE.SpotLight(0xFFFFFF);
+spotLight.position.set(0, 160, -80);
+spotLight.castShadow = true;
+spotLight.target = cube;
+spotLight.target.updateMatrixWorld();
+
 scene.add(cube);
 scene.add(floor);
 scene.add(spotLight);
+scene.add(spotLight.target);
 scene.add(pointLight);
 scene.add(ambLight);
 camera.position.z = 5;
@@ -166,11 +169,9 @@ function genSimplexMap() {
     let canvas = document.createElement("canvas");
     canvas.width = canvas.height = 40;
     const ctx = canvas.getContext('2d');
-    //FIXME
     const noise2d = createNoise2D();
     for (let x = 0; x < canvas.width; x++) {
         for (let y = 0; y < canvas.height; y++) {
-            //FIXME
             let value = Math.floor((noise2d(x, y) + 1) * 127);
             //let value = Math.floor(Math.random() * 255);
             if (value < 150) {
