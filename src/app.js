@@ -3,24 +3,16 @@ import { EXRLoader } from '../node_modules/three/examples/jsm/loaders/EXRLoader.
 import { PMREMGenerator } from '../node_modules/three/src/extras/PMREMGenerator.js';
 import { OrbitControls } from 'orbitControls';
 import { createNoise2D } from 'simplex-noise';
+import * as Ammo from './ammo.js';
 
-let matRadios = document.querySelectorAll('input[name="material"]');
-for (let i = 0; i < matRadios.length; i++) {
-    matRadios[i].addEventListener(
-        "change", function() {switchMaterial(this.value)}
-    );
+Ammo().then(Start);
+
+function Start() {
 }
 
-let sizeRanges = document.querySelectorAll('input[name="size"]');
-console.log("Size: ", sizeRanges.length);
-for (let j = 0; j < sizeRanges.length; j++) {
-    console.log("event", j);
-    sizeRanges[j].addEventListener(
-        "change", function() {resizeCube(this.id, this.value)}
-    );
-}
-
-document.getElementById('resetBtn').addEventListener("click", resetScene);
+let physicsWorld = undefined;
+const rigidBody_list = new Array();
+let tmpTransformation = new Ammo.btTransform();
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth /
@@ -79,6 +71,23 @@ spotLight.castShadow = true;
 spotLight.target = cube;
 spotLight.target.updateMatrixWorld();
 
+let transform = new Ammo.btTransform();
+transform.setIdentity();
+transform.setOrigin(new Ammo.btVector(0, 0, 0));
+transform.setRotation(new Ammo.btQuaternion(0, 0, 0, 1));
+let defaultMotionState = new Ammo.btDefaultMotionState(transform);
+let structColShape = new Ammo.btBoxShape( new Ammo.btVector3(1, 1, 1) );
+structColShape.setMargin( 0.05 );
+let localInertia = new Ammo.btVector3(0, 0, 0);
+structColShape.CalculateLocalInertia(10, localInertia);
+let rBody_Info = new Ammo.btRigidBodyconstructionInfo(mass, 
+    defaultMotionState, structColShape, localInertia
+);
+let rBody = new Ammo.btRigidBody(RBody_Info);
+physicsWorld.addRigidBody(rBody);
+cube.userdata.physicsBody = rBody;
+rigidBody_List.push(cube);
+
 scene.add(cube);
 scene.add(floor);
 scene.add(spotLight);
@@ -92,6 +101,46 @@ function animate() {
     cube.rotation.x += 0.01;
     cube.rotation.y += 0.01;
     renderer.render(scene, camera);
+}
+
+function setupPhysicsWorld() {
+    let collisionConfiguration = new Ammo.btDefaulCollisionConfiguration();
+    let dispatcher = new Ammo.btCollisionDispatcher();
+    let overlappingPairCache = new Ammo.btDbvtBroadphase();
+    let solver = new Ammo.btSequentialImpulseConstraintSolver();
+    let physicsWorld = new Ammo.btDiscreteDynamicsWorld(dispatcher, 
+        overlappingPairCache, solver, collisionConfiguration
+    );
+    physicsWorld.setGravity(new Ammo.btVector3(0, -10, 0));
+}
+
+function updatePhysicsWorld(deltaTime) {
+    physicsWorld.stepSimulation(deltaTime, 10);
+    let motionState = cube.userData.physicsBody.getMotionState();
+    if (motionState) {
+        motionState.getWorldTransform(tmpTransformation);
+        let newPos = tmpTransformation.getOrigin();
+        let newQua = tmpTransformation.getRotation();
+        cube.position.set(newPos.x(), newPos.y(), newPos.z());
+        cube.quaternion.set(newQua.x(), newQua.y(), newQuaz());
+    }
+}
+
+function addEventListeners() {
+    let matRadios = document.querySelectorAll('input[name="material"]');
+    for (let i = 0; i < matRadios.length; i++) {
+        matRadios[i].addEventListener(
+            "change", function() {switchMaterial(this.value)}
+        );
+    }
+    let sizeRanges = document.querySelectorAll('input[name="size"]');
+    for (let j = 0; j < sizeRanges.length; j++) {
+        console.log("event", j);
+        sizeRanges[j].addEventListener(
+            "change", function() {resizeCube(this.id, this.value)}
+        );
+    }
+    document.getElementById('resetBtn').addEventListener("click", resetScene);
 }
 
 function resetScene() {

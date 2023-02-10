@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@hapi/ammo": "^6.0.0",
     "live-server": "^1.1.0",
     "simplex-noise": "^4.0.1",
     "three": "^0.149.0"
